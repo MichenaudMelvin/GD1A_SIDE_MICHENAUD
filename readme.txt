@@ -1,0 +1,1 @@
+execute moongoose and put "http://localhost:8000/" in your navigator and run "phaserJeu"
