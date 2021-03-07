@@ -19,7 +19,7 @@
 var config = {
     type: Phaser.AUTO,
     width: 1920,
-    height: 970,
+    height: 1080,
     physics: {
         default: 'arcade',
         arcade: {
@@ -34,14 +34,42 @@ var config = {
     }
 };
 
+// class Entity{
+//     constructor(name, pv){
+//         this.name = name;
+//         this.pv = pv;
+//     } get name(){
+//         return this.name;
+//     } get pv(){
+//         return this.pv;
+//     }
+// }
+
+// class EntityPlayer extends Entity{
+//     constructor(name, pv, player){
+//         super(name, pv);
+//         this.name = name;
+//         this.pv = pv;
+//         this.player = player;
+//     }
+// }
+
+// class EntityEnnemi extends Entity{
+//     constructor(name, pv, degats){
+//         super(name, pv);
+//         this.name = name;
+//         this.pv = pv;
+//         this.degats = degats;
+//     }
+// }
+
 var player;
+// new EntityPlayer("regis", 3, player)
+
+var speedLaser;
 var platforms;
-var ennemi;
 var cursors;
-var pv = 3;
-var score = 0;
 var gameOver = false;
-var scoreText;
 
 var game = new Phaser.Game(config);
 
@@ -50,24 +78,26 @@ function preload (){
     this.load.image('ground', 'assets/platform.png');
     this.load.image('coeur', 'assets/coeur.png');
     this.load.image('coeurVide', 'assets/coeurVide.png');
-    this.load.image('truc', 'assets/truc.png');
+    this.load.image('laser', 'assets/laser.png');
     this.load.spritesheet('dude', 'assets/dude.png', {frameWidth: 32, frameHeight: 48});
 }
 
 function create (){
     this.add.image(960, 485, 'sky');
 
-    ennemi = this.physics.add.image(100, 100, 'truc');
+    speedLaser = Phaser.Math.GetSpeed(960, 0.05);
+    laser = this.add.image(100, 100, 'laser').setOrigin(0);
+    //retirer la physique de l'image
+    
+    ennemi = this.physics.image.add(100, 100 'laser').staticGroup();
 
-    /*var ennemiTween = this.tweens.add({
+    var ennemiTween = this.tweens.add({
         targets: ennemi,
-        x: 160,
-        ease: 'Power1',
-        duration: 160*4,
+        x: 1920,
+        duration: 960,
         yoyo: false,
         repeat: -1,
-        //ennemi = this.add.image(x, 100, 'truc'),
-    });*/
+    });
 
     platforms = this.physics.add.staticGroup();
     vie = this.physics.add.staticGroup();
@@ -108,11 +138,16 @@ function create (){
     cursors = this.input.keyboard.createCursorKeys();
 
     this.physics.add.collider(player, platforms);
-    this.physics.add.collider(ennemi, platforms);
-    this.physics.add.overlap(player, ennemi, hitPlayer, null, this);
+    // this.physics.add.collider(laser, platforms, laserCollider);
+    this.physics.add.overlap(player, laser, hitPlayer, null, this);
 }
 
 function update (){
+    laser.x += speedLaser;
+    if (laser.x > 1920 || laser.x < 0){
+        laser.x = 100;
+    }
+
     if (gameOver){
         return;
     }
@@ -141,12 +176,24 @@ function update (){
     } */
 }
 
+// function laserCollider()
+
 function hitPlayer(player, ennemi, pv){
-    if (pv != 0){
+    console.log("Game over")
+    if(pv != 0){
+        if(pv == 3){
+            vie.create(50, 10, 'coeurVide');
+        // } else if(pv == 2){
+        //     vie.create(30, 10, 'coeurVide');
+        // } else if(pv == 1){
+        //     vie.create(10, 10, 'coeurVide');
+        }
         pv = pv - 1;
-        vie.create(50, 10, 'coeurVide');
+        console.log(pv);
+    } else if(pv == 0){
+        console.log("Game over")
     }
-    console.log(pv);
+    
 }
 
 </script>
