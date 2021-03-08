@@ -86,13 +86,13 @@ function create (){
     this.add.image(960, 485, 'sky');
 
     speedLaser = Phaser.Math.GetSpeed(960, 0.05);
-    laser = this.add.image(100, 100, 'laser').setOrigin(0);
+    laser = this.add.sprite(100, 100, 'laser');
     //retirer la physique de l'image
     
-    ennemi = this.physics.image.add(100, 100 'laser').staticGroup();
+    //ennemi = this.add.image(100, 100, 'laser')
 
     var ennemiTween = this.tweens.add({
-        targets: ennemi,
+        targets: laser,
         x: 1920,
         duration: 960,
         yoyo: false,
@@ -117,20 +117,20 @@ function create (){
 
     this.anims.create({
         key: 'left',
-        frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
+        frames: this.anims.generateFrameNumbers('dude', {start: 0, end: 3}),
         frameRate: 10,
         repeat: -1
     });
 
     this.anims.create({
         key: 'turn',
-        frames: [ { key: 'dude', frame: 4 } ],
+        frames: [ {key: 'dude', frame: 4} ],
         frameRate: 20
     });
 
     this.anims.create({
         key: 'right',
-        frames: this.anims.generateFrameNumbers('dude', { start: 5, end: 8 }),
+        frames: this.anims.generateFrameNumbers('dude', {start: 5, end: 8}),
         frameRate: 10,
         repeat: -1
     });
@@ -143,10 +143,10 @@ function create (){
 }
 
 function update (){
-    laser.x += speedLaser;
-    if (laser.x > 1920 || laser.x < 0){
-        laser.x = 100;
-    }
+    // laser.x += speedLaser;
+    // if (laser.x > 1920 || laser.x < 0){
+    //     laser.x = 100;
+    // }
 
     if (gameOver){
         return;
@@ -181,6 +181,7 @@ function update (){
 function hitPlayer(player, ennemi, pv){
     console.log("Game over")
     if(pv != 0){
+        vie.create(50, 10, 'coeurVide');
         if(pv == 3){
             vie.create(50, 10, 'coeurVide');
         // } else if(pv == 2){
@@ -189,7 +190,7 @@ function hitPlayer(player, ennemi, pv){
         //     vie.create(10, 10, 'coeurVide');
         }
         pv = pv - 1;
-        console.log(pv);
+        console.log(pv);d
     } else if(pv == 0){
         console.log("Game over")
     }
