@@ -51,10 +51,19 @@ var jetpackValueTxt = "";
 var ableToUseJet = false;
 var checkUpisUp = false;
 var startJetPackDone = false;
+var frameCheckOnce = false;
 
+
+//variables pour ennmis :
+var timerEnnemi = 0;
+var deplacementEnnemi;
+var alreadyShuffle = false;
+var frameDePause1;
+var frameDePause2;
 var keyA;
 
 function preload (){
+    this.load.image('test', 'assets/testItem.png');
     this.load.image('background', 'assets/fond.png');
     this.load.image('ground', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/foreground.png');
     this.load.image('coeur', 'assets/coeur.png');
@@ -85,9 +94,11 @@ function create (){
     vie.create(50, 10, 'coeur');
 
     player = this.physics.add.sprite(100, 600, 'dude');
+    testOppo = this.physics.add.sprite(300, 600, 'test');
 
     player.setBounce(0.5);
     player.setCollideWorldBounds(true);
+    testOppo.setCollideWorldBounds(true);
     
     this.anims.create({
         key: 'left',
@@ -112,19 +123,22 @@ function create (){
     cursors = this.input.keyboard.createCursorKeys();
     keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A)
 
+    //gestion des collisions
     this.physics.add.collider(player, platforms, colliderPlatformPlayer);
     // this.physics.add.collider(laser, platforms, laserCollider);
     this.physics.add.overlap(player, ennemiTween, hitPlayer, null, this);
+    this.physics.add.collider(testOppo, platforms);
+    this.physics.add.collider(player, testOppo);
+    //quand powerUp est touché
+    // this.physics.add.overlap(player, powerUp, powerUpFunction);
 
     //regarder le logiciel tiled
     
     this.cameras.main.startFollow(player);
-    // this.cameras.setBounds(0, 0, game.config.width * 3, game.config.height);
 }
 
 function update (){
-    this.background.tilePositionX = this.cameras.scrollX * .3;
-    frame = frame + 1
+    frame = frame + 1;
     if(frame == 70){
         frame = 0
     }
@@ -151,12 +165,11 @@ function update (){
     if (player.body.touching.down && cursors.up.isDown){
         player.setVelocityY(-330);
         ableToUseJet = true;
-        console.log(ableToUseJet);
     }
+
     if (!player.body.touching.down && cursors.up.isUp && ableToUseJet == true && jetpackValue > 0){
         checkUpisUp = true;
-    }
-    if (cursors.up.isDown && checkUpisUp == true && ableToUseJet == true && jetpackValue > 0){
+    } if (cursors.up.isDown && checkUpisUp == true && ableToUseJet == true && jetpackValue > 0){
         jetpackValue = jetpackValue - 1
         if(startJetPackDone == true){
             for(let i = 0; i < 1000; i ++){
@@ -174,6 +187,7 @@ function update (){
     
     if(cursors.up.isUp && checkUpisUp == true && ableToUseJet == true){
         startJetPackDone = false;
+        frameCheckOnce = false;
     }
 
     if(jetpackValue < 100){
@@ -184,7 +198,45 @@ function update (){
         }
         //make this shit disappear
         text = this.add.text(player.x+xJetText, player.y, jetpackValue);
+        if(frameCheckOnce == false){
+            var frameCheck = frame+10
+            frameCheckOnce = true;
+        }
+        while(frame <= frameCheck){
+            text.destroy();
+            frame = frame+1;
+        }
     }
+
+    timerEnnemi = timerEnnemi + 1;
+    //comportement de l'ennemi
+    //working but look at acceleration
+    if(timerEnnemi >= 0 && timerEnnemi < 100){
+        if(alreadyShuffle == false){
+            frameDePause1 = chiffreAleatoire(10, 250);
+            frameDePause2 = chiffreAleatoire(10, 250);
+            deplacementEnnemi = (-chiffreAleatoire(100, 300));
+            alreadyShuffle = true;
+        } testOppo.setVelocityX(deplacementEnnemi);
+    } else if (timerEnnemi > 100 && timerEnnemi < frameDePause1){
+        alreadyShuffle = false;
+        testOppo.setVelocityX(0);
+    } else if (timerEnnemi > frameDePause1 && timerEnnemi < (frameDePause1+frameDePause2)){
+        if(alreadyShuffle == false){
+            deplacementEnnemi = chiffreAleatoire(100, 300);
+            alreadyShuffle = true;
+        } testOppo.setVelocityX(deplacementEnnemi);
+    } else if (timerEnnemi > (frameDePause1+frameDePause2) && timerEnnemi < (frameDePause1+frameDePause2+((frameDePause1+frameDePause2)/2))){
+        alreadyShuffle = false;
+        testOppo.setVelocityX(0);
+    } else if (timerEnnemi >= (frameDePause1+frameDePause2+((frameDePause1+frameDePause2)/2))){
+        timerEnnemi = 0;
+    }
+
+    //permetra le tri de l'ennemi
+    // if(player.y+10 >= testOppo.y && player.y-10 <= testOppo.y){
+    //     
+    // }
 
     if (keyA.isDown){
         player.setVelocityX(330)
@@ -212,6 +264,10 @@ function colliderPlatformPlayer(){
     }
 }
 
+function powerUpFunction(){
+    powerUp.disableBody(true, true);
+    player.setVelocityY(-1500);
+}
 
 function hitPlayer(player, ennemi, pv){
     console.log("Game over")
@@ -230,6 +286,12 @@ function hitPlayer(player, ennemi, pv){
         console.log("Game over")
     }
     
+}
+
+function chiffreAleatoire(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min;
 }
 
 </script>
