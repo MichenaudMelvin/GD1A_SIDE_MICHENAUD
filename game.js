@@ -77,11 +77,14 @@ var frameDePause1;
 var frameDePause2;
 var keyA;
 
-//pour ennmis qui tire
+//pour ennemis qui tire
 var directionLaser;
-var laserAlreadyShot = false;
+var laserAlreadyShotEnnemi = false;
 var rechargeEnnemi;
 var lastPose = "right";
+
+//pour joueur qui tire
+var laserAlreadyShotPlayer = false;
 
 function preload (){
     this.load.image('test', 'assets/testItem.png');
@@ -180,7 +183,6 @@ function update (){
     //saut + jetpack
     if (player.body.touching.down && cursors.up.isDown){
         hit = false;
-        console.log(hit);
         player.setVelocityY(-330);
         ableToUseJet = true;
     }
@@ -266,26 +268,39 @@ function update (){
         }
         frameInvulnerable = frameInvulnerable - 1;
         this.tweens.add({
+            alpha: 0,
+            ease: "Back.easeInOut", //https://rexrainbow.github.io/phaser3-rex-notes/docs/site/ease-function/
             targets: player,
-            duration: 500,
-            repeat: 5,
-        });
+            duration: 5000,
+            repeat: -1,
+            yoyo: true,
+        })
+        
     }
+    // } else if(frameInvulnerable == 0){
+    //     this.tweens.add({alpha: 1,targets: player,})
+    // }
 
     //permetra le tri de l'ennemi
     if(player.y+10 >= testOppo.y && player.y-10 <= testOppo.y){
-        if(laserAlreadyShot == false){
-            if(player.x+200 < testOppo.x){
+        if(laserAlreadyShotEnnemi == false){
+            if(player.x < testOppo.x && player.x > testOppo.x-800){
                 directionLaser = "left";
-            } else if(player.x+200 > testOppo.x){
+                laser = this.physics.add.sprite(testOppo.x+10, testOppo.y, 'laser');
+                laserAlreadyShotEnnemi = true;
+            } else if(player.x > testOppo.x && player.x < testOppo.x+800){
                 directionLaser = "right";
-            } laser = this.physics.add.sprite(testOppo.x+10, testOppo.y, 'laser');
-            rechargeEnnemi = 500;
-            laserAlreadyShot = true;
+                laser = this.physics.add.sprite(testOppo.x+10, testOppo.y, 'laser');
+                laserAlreadyShotEnnemi = true;
+            } rechargeEnnemi = chiffreAleatoire(250, 500);
         }
     }
 
-    if(laserAlreadyShot == true){
+    // if(player.x < testOppo.x && player.x > testOppo.x-200){
+    //     directionLaser = "left";
+    // } else if(player.x > testOppo.x && player.x < testOppo.x+200){
+
+    if(laserAlreadyShotEnnemi == true){
         this.physics.add.overlap(player, laser, hitPlayer);
         laser.setVelocityY(-5);
         if(directionLaser == "left"){
@@ -296,27 +311,33 @@ function update (){
             laser.disableBody(true, true);
         } rechargeEnnemi = rechargeEnnemi - 1;
         if (rechargeEnnemi == 0){
-            laserAlreadyShot = false;
+            laserAlreadyShotEnnemi = false;
         }
     }
 
-    // if (keyA.isDown && hit == false){
-    // if(lastPose == "left" || cursors.left.isDown && keyA.isDown){
-    //     if(laserAlreadyShot == false){
-    //         laser = this.physics.add.sprite(testOppo.x+10, testOppo.y, 'laser');
-    //         laserAlreadyShot = true;
-    //     }
-    // } else if(lastPose == "right" || cursors.right.isDown && keyA.isDown){
-        
-    // }
-    // var ennemiTween = this.tweens.add({
-    //     targets: laser,
-    //     x: 1280,
-    //     duration: 960,
-    //     yoyo: false,
-    //     repeat: -1,
-    // });
-    // }
+    if (keyA.isDown && hit == false && laserAlreadyShotPlayer == false){
+        if(lastPose == "left" || cursors.left.isDown && keyA.isDown){
+            laserPlayer = this.physics.add.sprite(player.x+10, player.y, 'laser');
+            laserAlreadyShotPlayer = true;
+        } else if(lastPose == "right" || cursors.right.isDown && keyA.isDown){
+
+        }
+    }
+
+    if(laserAlreadyShotPlayer == true){
+        this.physics.add.overlap(player, laser, hitPlayer);
+        laser.setVelocityY(-5);
+        if(directionLaser == "left"){
+            laser.setVelocityX(-1000);
+        } else if(directionLaser == "right"){
+            laser.setVelocityX(1000);
+        }if(laser.x >= 1280 || laser.x <= 0){
+            laser.disableBody(true, true);
+        } rechargePlayer = rechargePlayer - 1;
+        if (rechargePlayer == 0){
+            laserAlreadyShotPlayer = false;
+        }
+    }
 }
 
 //pour le reset du jetPack
