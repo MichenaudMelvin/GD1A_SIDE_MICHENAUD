@@ -27,7 +27,7 @@ var config = {
         default: 'arcade',
         arcade: {
             gravity: {y: 300},
-            debug: false,
+            debug: true,
         }
     },
     scene: {
@@ -89,7 +89,7 @@ var laserAlreadyShotPlayer = false;
 //pour la fireball:
 var particuleGenerate = false;
 var crashFireballTest = false;
-var chanceFireball;
+var chanceFireball = 0;
 var fireballCanBeGenerated = true;
 
 function preload (){
@@ -170,8 +170,8 @@ function create (){
     // this.physics.add.overlap(player, powerUp, powerUpFunction);
 
     //creation de la caméra
-    // this.cameras.main.startFollow(player);
-    // this.cameras.main.setSize(1280,720);
+    this.cameras.main.startFollow(player);
+    this.cameras.main.setSize(1280,720);
 }
 
 function update (){
@@ -180,9 +180,10 @@ function update (){
         frame = 0
     }
 
-    if (gameOver){
-        return;
-    }
+    // if (pv == 0){
+    //     return;
+    // }
+
     //simples moves
     if(hit == false){
         if (cursors.left.isDown){
@@ -360,25 +361,41 @@ function update (){
     //         laserAlreadyShotPlayer = false;
     //     }
     // }
-
     //Pour la fireball (élément qui tue instantanément)
     if(fireballCanBeGenerated == true){
-        chanceFireball = chiffreAleatoire(0, 1999);
-        console.log("allo");
-        if (chanceFireball == 1){
-            fireball = this.physics.add.sprite(player.x, player.y-1000, 'fireball');
-            fireball.anims.play('animationFireBall', true);
+        chanceFireball = chiffreAleatoire(0, 100);
+    }
+
+    if (chanceFireball == 1){
+        fireball = this.physics.add.sprite(player.x, player.y-1000, 'fireball');
+        fireball.anims.play('animationFireBall', true);
+        if(lastPose == "right"){
             for(let i = 0; i < 150; i++){
                 fireball.setVelocityY(i*5);
                 fireball.setVelocityX(i);
-            } fireballCanBeGenerated = false;
+            }
+        } else if(lastPose == "left"){
+            for(let i = 0; i < 150; i++){
+                fireball.setVelocityY(i*5);
+                fireball.setVelocityX(-i);
+            }
+        } if(fireball.x <= 0 || fireball.x >= 1280){
+            console.log("test");
+            fireball = disableBody(true, true);
+            fireballCanBeGenerated = true;
+        } else{
+            console.log("here");
+            console.log(fireball.x);
+            fireballCanBeGenerated = false;
             this.physics.add.collider(fireball, platforms, crashFireball);
+            this.physics.add.overlap(fireball, player, fireballHitingPlayer);
+            this.physics.add.overlap(fireball, testOppo, fireballHitingOppo);
         }
     }
 
     if(crashFireballTest == true){
-        console.log("test");
         if(particuleGenerate == false){
+            this.cameras.main.shake(200);
             particule_1 = this.physics.add.sprite(fireball.x+10, fireball.y+60, 'particule_1');
             particule_2 = this.physics.add.sprite(fireball.x-20, fireball.y+55, 'particule_2');
             particule_3 = this.physics.add.sprite(fireball.x-5, fireball.y+50, 'particule_3');
@@ -433,15 +450,25 @@ function hitPlayer(){
         } else if(pv == 1 && frameInvulnerable == 0){
             vie.create(185, 50, 'coeurVide');
             reculDone = false;
-        }
-        pv = pv - 1;
-    
-    } if(pv == 0){
-        player.setVelocityX(4000);
+        } pv = pv - 1;
     }
 }
 
 function crashFireball(){particuleGenerate = false;crashFireballTest = true;}
+
+function fireballHitingPlayer(){
+    pv = 0;
+    vie.create(45, 50, 'coeurVide');
+    vie.create(115, 50, 'coeurVide');
+    vie.create(185, 50, 'coeurVide');
+    fireball.disableBody(true, true);
+}
+
+function fireballHitingOppo(){
+    fireball.disableBody(true, true);
+    testOppo.disableBody(true, true);
+    fireballCanBeGenerated = true;
+}
 
 function chiffreAleatoire(min, max){min = Math.ceil(min);max = Math.floor(max);return Math.floor(Math.random() * (max - min)) + min;}
 
