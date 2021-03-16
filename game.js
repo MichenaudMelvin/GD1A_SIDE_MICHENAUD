@@ -1,7 +1,7 @@
 // import TitleScreen from './titleScreen.js';
 // import GameScene from './gameScene.js';
 // console.log("congrats, you opened the console");
-
+//https://www.patchesoft.com/phaser-3-title-screen-tutorial
 //config game
 // var titleScreen = new TitleScreen();
 // var gameScene = new GameScene();
@@ -86,6 +86,12 @@ var lastPose = "right";
 //pour joueur qui tire
 var laserAlreadyShotPlayer = false;
 
+//pour la fireball:
+var particuleGenerate = false;
+var crashFireballTest = false;
+var chanceFireball;
+var fireballCanBeGenerated = true;
+
 function preload (){
     this.load.image('test', 'assets/testItem.png');
     this.load.image('background', 'assets/fond.png');
@@ -93,10 +99,17 @@ function preload (){
     this.load.image('coeur', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/coeur.png');
     this.load.image('coeurVide', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/coeurVide.png');
     this.load.image('laser', 'assets/laser.png');
+    this.load.image('particule_1', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/particule_1.png');
+    this.load.image('particule_2', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/particule_2.png');
+    this.load.image('particule_3', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/particule_3.png');
+    //load de toutes les sprites sheets
     this.load.spritesheet('dude', 'assets/dude.png', {frameWidth: 32, frameHeight: 48});
+    this.load.spritesheet('midground', 'fichier_de_travail/spriteSheetFond-assets/midgroundSpriteSheet.png', {frameWidth: 1870, frameHeight: 440});
+    this.load.spritesheet('fireball', 'fichier_de_travail/spriteSheetFireBall-assets/spriteSheetFireBall.png', {frameWidth: 67, frameHeight: 114});
 }
 
 function create (){
+    //creation des toutes les images
     this.background = this.add.image(0, 0, 'background');
     this.background.setOrigin(0, 0);
     
@@ -115,6 +128,8 @@ function create (){
     player.setCollideWorldBounds(true);
     testOppo.setCollideWorldBounds(true);
     
+    //creation toutes les animations
+    //animation personnage joueur, tag = dude
     this.anims.create({
         key: 'left',
         frames: this.anims.generateFrameNumbers('dude', {start: 0, end: 3}),
@@ -135,6 +150,14 @@ function create (){
         repeat: -1
     });
     
+    //animation fireball, tag = fireball
+    this.anims.create({
+        key: 'animationFireBall',
+        frames: this.anims.generateFrameNumbers('fireball', {start: 0, end: 1}),
+        frameRate: 10,
+        repeat: -1,
+    });
+    
     cursors = this.input.keyboard.createCursorKeys();
     keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A)
 
@@ -146,8 +169,7 @@ function create (){
     //quand powerUp est touché
     // this.physics.add.overlap(player, powerUp, powerUpFunction);
 
-    //regarder le logiciel tiled
-    
+    //creation de la caméra
     // this.cameras.main.startFollow(player);
     // this.cameras.main.setSize(1280,720);
 }
@@ -267,14 +289,14 @@ function update (){
             reculDone = true;
         }
         frameInvulnerable = frameInvulnerable - 1;
-        this.tweens.add({
-            alpha: 0,
-            ease: "Back.easeInOut", //https://rexrainbow.github.io/phaser3-rex-notes/docs/site/ease-function/
-            targets: player,
-            duration: 5000,
-            repeat: -1,
-            yoyo: true,
-        })
+        // this.tweens.add({
+        //     alpha: 0,
+        //     ease: "Back.easeInOut", //https://rexrainbow.github.io/phaser3-rex-notes/docs/site/ease-function/
+        //     targets: player,
+        //     duration: 5000,
+        //     repeat: -1,
+        //     yoyo: true,
+        // })
         
     }
     // } else if(frameInvulnerable == 0){
@@ -315,27 +337,68 @@ function update (){
         }
     }
 
-    if (keyA.isDown && hit == false && laserAlreadyShotPlayer == false){
-        if(lastPose == "left" || cursors.left.isDown && keyA.isDown){
-            laserPlayer = this.physics.add.sprite(player.x+10, player.y, 'laser');
-            laserAlreadyShotPlayer = true;
-        } else if(lastPose == "right" || cursors.right.isDown && keyA.isDown){
+    // if (keyA.isDown && hit == false && laserAlreadyShotPlayer == false){
+    //     if(lastPose == "left" || cursors.left.isDown && keyA.isDown){
+    //         laserPlayer = this.physics.add.sprite(player.x+10, player.y, 'laser');
+    //         laserAlreadyShotPlayer = true;
+    //     } else if(lastPose == "right" || cursors.right.isDown && keyA.isDown){
 
+    //     }
+    // }
+
+    // if(laserAlreadyShotPlayer == true){
+    //     this.physics.add.overlap(player, laser, hitPlayer);
+    //     laser.setVelocityY(-5);
+    //     if(directionLaser == "left"){
+    //         laser.setVelocityX(-1000);
+    //     } else if(directionLaser == "right"){
+    //         laser.setVelocityX(1000);
+    //     }if(laser.x >= 1280 || laser.x <= 0){
+    //         laser.disableBody(true, true);
+    //     } rechargePlayer = rechargePlayer - 1;
+    //     if (rechargePlayer == 0){
+    //         laserAlreadyShotPlayer = false;
+    //     }
+    // }
+
+    //Pour la fireball (élément qui tue instantanément)
+    if(fireballCanBeGenerated == true){
+        chanceFireball = chiffreAleatoire(0, 1999);
+        console.log("allo");
+        if (chanceFireball == 1){
+            fireball = this.physics.add.sprite(player.x, player.y-1000, 'fireball');
+            fireball.anims.play('animationFireBall', true);
+            for(let i = 0; i < 150; i++){
+                fireball.setVelocityY(i*5);
+                fireball.setVelocityX(i);
+            } fireballCanBeGenerated = false;
+            this.physics.add.collider(fireball, platforms, crashFireball);
         }
     }
 
-    if(laserAlreadyShotPlayer == true){
-        this.physics.add.overlap(player, laser, hitPlayer);
-        laser.setVelocityY(-5);
-        if(directionLaser == "left"){
-            laser.setVelocityX(-1000);
-        } else if(directionLaser == "right"){
-            laser.setVelocityX(1000);
-        }if(laser.x >= 1280 || laser.x <= 0){
-            laser.disableBody(true, true);
-        } rechargePlayer = rechargePlayer - 1;
-        if (rechargePlayer == 0){
-            laserAlreadyShotPlayer = false;
+    if(crashFireballTest == true){
+        console.log("test");
+        if(particuleGenerate == false){
+            particule_1 = this.physics.add.sprite(fireball.x+10, fireball.y+60, 'particule_1');
+            particule_2 = this.physics.add.sprite(fireball.x-20, fireball.y+55, 'particule_2');
+            particule_3 = this.physics.add.sprite(fireball.x-5, fireball.y+50, 'particule_3');
+            particuleGenerate = true;
+        } this.physics.add.collider(particule_1, player, hitPlayer);
+        this.physics.add.collider(particule_2, player, hitPlayer);
+        this.physics.add.collider(particule_3, player, hitPlayer);
+        fireball.disableBody(true, true);
+        if(particule_1.y <= 1280){
+            for(let i = 0; i < 9; i++){particule_1.setVelocityX(i);}  
+        } if(particule_2.y <= 1280){
+            for(let i = 0; i < 9; i++){particule_2.setVelocityX(-i);}
+        } if(particule_3.y <= 1280){
+            for(let i = 0; i < 9; i++){particule_3.setVelocityX(-i);}
+        } if(particule_1.y >= 1280 && particule_2.y >= 1280 && particule_3.y >= 1280){
+            particule_1.disableBody(true, true);
+            particule_2.disableBody(true, true);
+            particule_3.disableBody(true, true);
+            crashFireballTest = false;
+            fireballCanBeGenerated = true;
         }
     }
 }
@@ -378,8 +441,39 @@ function hitPlayer(){
     }
 }
 
-function chiffreAleatoire(min, max){
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min)) + min;
-}
+function crashFireball(){particuleGenerate = false;crashFireballTest = true;}
+
+function chiffreAleatoire(min, max){min = Math.ceil(min);max = Math.floor(max);return Math.floor(Math.random() * (max - min)) + min;}
+
+
+//funny bug :
+// chanceFireball = chiffreAleatoire(0, 200);
+//     if (chanceFireball == 1){
+//         fireball = this.physics.add.sprite(player.x, player.y-500, 'fireball');
+//         fireball.anims.play('animationFireBall', true);
+//         this.physics.add.collider(fireball, platforms, crashFireball);
+//     }
+
+//     if(crashFireballTest == true){
+//         if(particuleGenerate == false){
+//             particule_1 = this.physics.add.sprite(fireball.x+10, fireball.y+60, 'particule_1');
+//             particule_2 = this.physics.add.sprite(fireball.x-20, fireball.y+55, 'particule_2');
+//             particule_3 = this.physics.add.sprite(fireball.x-5, fireball.y+50, 'particule_3');
+//             particuleGenerate = true;
+//         } this.physics.add.collider(particule_1, player, hitPlayer);
+//         this.physics.add.collider(particule_2, player, hitPlayer);
+//         this.physics.add.collider(particule_3, player, hitPlayer);
+//         fireball.disableBody(true, true);
+//         if(particule_1.y <= 1280){
+//             for(let i = 0; i < 9; i++){particule_1.setVelocityX(i);}  
+//         } if(particule_2.y <= 1280){
+//             for(let i = 0; i < 9; i++){particule_2.setVelocityX(-i);}
+//         } if(particule_3.y <= 1280){
+//             for(let i = 0; i < 9; i++){particule_3.setVelocityX(-i);}
+//         } if(particule_1.y >= 1280 && particule_2.y >= 1280 && particule_3.y >= 1280){
+//             particule_1.disableBody(true, true);
+//             particule_2.disableBody(true, true);
+//             particule_3.disableBody(true, true);
+//             crashFireballTest = false;
+//         }
+//     }
