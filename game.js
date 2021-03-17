@@ -52,7 +52,7 @@ var frameDePause2;
 var keyA;
 
 //pour ennemis qui tire
-var directionLaser;
+var directionLaserEnnemi;
 var laserAlreadyShotEnnemi = false;
 var rechargeEnnemi;
 var lastPose = "right";
@@ -60,6 +60,9 @@ var hitOppo = false;
 
 //pour joueur qui tire
 var laserAlreadyShotPlayer = false;
+var rechargePlayer;
+var directionLaserPlayer;
+var hitOppoByLaserPlayer;
 
 //pour la fireball
 var particuleGenerate = false;
@@ -78,13 +81,14 @@ function preload (){
     this.load.image('test', 'assets/testItem.png');
     this.load.image('background', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/background.png');
     this.load.image('ground', 'fichier_de_travail/test.png');
+    // this.load.tilemap('ground', 'fichier_de_travail/test.json', null, Phaser.Tilemap.TILED_JSON);
+    // this.load.image('tilesGround', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/tileSheet.png');
     this.load.image('coeur', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/coeur.png');
     this.load.image('coeurVide', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/coeurVide.png');
-    this.load.image('laser', 'assets/laser.png');
+    this.load.image('laser', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/laser.png');
     this.load.image('particule_1', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/particule_1.png');
     this.load.image('particule_2', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/particule_2.png');
     this.load.image('particule_3', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/particule_3.png');
-    // this.load.image('midground', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/midground.png');
 
     //load de toutes les sprites sheets
     this.load.spritesheet('dude', 'assets/dude.png', {frameWidth: 32, frameHeight: 48});
@@ -101,6 +105,7 @@ function create (){
     midground = this.add.sprite(640, 424, 'midground');
     // this.midground.setOrigin(0, 0);
     // this.midground.setScrollFactor(0);
+    // midground.addTilesetImage('ground', 'tiles');
 
     platforms = this.physics.add.staticGroup();
     vie = this.physics.add.staticGroup();
@@ -109,13 +114,6 @@ function create (){
 
     player = this.physics.add.sprite(100, 600, 'dude');
     testOppo = this.physics.add.sprite(700, 600, 'test');
-
-    this.coeur_1 = this.add.image(player.x-50, player.y-550, 'coeur');
-    this.coeur_2 = this.add.image(player.x+30, player-550, 'coeur');
-    this.coeur_3 = this.add.image(player.x+50, player-550, 'coeur');
-    this.coeur_1.setScrollFactor(0);
-    this.coeur_2.setScrollFactor(0);
-    this.coeur_3.setScrollFactor(0);
 
     player.setBounce(0); //just for debug, when it's done set to 0.5 
     player.setCollideWorldBounds(true);
@@ -175,19 +173,29 @@ function create (){
     this.physics.add.collider(testOppo, platforms);
     this.physics.add.overlap(player, testOppo, hitPlayer);
     //quand powerUp est touché
-    // this.physics.add.overlap(player, powerUp, powerUpFunction);
+    //this.physics.add.overlap(player, powerUp, powerUpFunction);
 
     //creation de la caméra
     this.cameras.main.startFollow(player);
     this.cameras.main.setSize(1280,720);
+
+    //pour l'interface
+    this.coeur_1_vide = this.add.image(player.x-50, player.y-550, 'coeurVide');
+    this.coeur_2_vide = this.add.image(player.x+10, player.y-550, 'coeurVide');
+    this.coeur_3_vide = this.add.image(player.x+70, player.y-550, 'coeurVide');
+    this.coeur_1_vide.setScrollFactor(0);
+    this.coeur_2_vide.setScrollFactor(0);
+    this.coeur_3_vide.setScrollFactor(0);
+    this.coeur_1 = this.add.image(player.x-50, player.y-550, 'coeur');
+    this.coeur_2 = this.add.image(player.x+10, player.y-550, 'coeur');
+    this.coeur_3 = this.add.image(player.x+70, player.y-550, 'coeur');
+    this.coeur_1.setScrollFactor(0);
+    this.coeur_2.setScrollFactor(0);
+    this.coeur_3.setScrollFactor(0);
 }
 
 function update (){
     this.background.tilePositionX = this.cameras.scrollX * .3;
-    // this.midground.tilePositionX = this.cameras.scrollX * .8;
-    this.coeur_1.tilePositionX = this.cameras.scrollX * 0.6;
-    this.coeur_2.tilePositionX = this.cameras.scrollX * 0.6;
-    this.coeur_3.tilePositionX = this.cameras.scrollX * 0.6;
 
     // if (pv == 0){
     //     player.setVelocityX(0);
@@ -200,8 +208,9 @@ function update (){
     if(frame == 70){
         frame = 0
     }
-    frameMidground = frameMidground+1;
+    
     //animation du midground en continu
+    frameMidground = frameMidground+1;
     if(firstPart == true){
         midground.anims.play('animationMidgroundFirstPart', true);
         if(frameMidground >= 60){
@@ -238,13 +247,12 @@ function update (){
     }
 
     //saut + jetpack
-    if (player.body.touching.down && cursors.up.isDown){
-        hit = false;
+    if (player.body.touching.down && cursors.up.isDown && hit == false){
         player.setVelocityY(-330);
         ableToUseJet = true;
     }
 
-    if (!player.body.touching.down && cursors.up.isUp && ableToUseJet == true && jetpackValue > 0){
+    if (!player.body.touching.down && cursors.up.isUp && ableToUseJet == true && jetpackValue > 0 && hit == false){
         checkUpisUp = true;
     } if (cursors.up.isDown && checkUpisUp == true && ableToUseJet == true && jetpackValue > 0){
         jetpackValue = jetpackValue - 1
@@ -253,11 +261,8 @@ function update (){
                 player.setVelocityY(-1*i);
                 startJetPackDone = true;
             }
-        } else{
-            player.setVelocityY(-300);
-        } if (jetpackValue < 0){
-            jetpackValue = 0;
-        }
+        } else{player.setVelocityY(-300);}
+        if (jetpackValue < 0){jetpackValue = 0;}
     }
     
     if(cursors.up.isUp && checkUpisUp == true && ableToUseJet == true){
@@ -266,21 +271,19 @@ function update (){
     }
 
     if(jetpackValue < 100){
-        if(player.x < 100){
-            xJetText = 100;
-        } else{
-            xJetText = -100;
-        }
-        //make this shit disappear
+        if(player.x < 100){xJetText = 100;} 
+        else{xJetText = -100;}
+
         text = this.add.text(player.x+xJetText, player.y, jetpackValue);
         if(frameCheckOnce == false){
-            var frameCheck = frame+10
+            var frameCheck = frame;
             frameCheckOnce = true;
         }
         while(frame <= frameCheck){
             text.destroy();
             frame = frame+1;
         }
+        // text.destroy();
     }
 
     timerEnnemi = timerEnnemi + 1;
@@ -304,20 +307,15 @@ function update (){
     } else if (timerEnnemi > (frameDePause1+frameDePause2) && timerEnnemi < (frameDePause1+frameDePause2+((frameDePause1+frameDePause2)/2))){
         alreadyShuffle = false;
         testOppo.setVelocityX(0);
-    } else if (timerEnnemi >= (frameDePause1+frameDePause2+((frameDePause1+frameDePause2)/2))){
-        timerEnnemi = 0;
-    }
+    } else if (timerEnnemi >= (frameDePause1+frameDePause2+((frameDePause1+frameDePause2)/2))){timerEnnemi = 0;}
 
     //invulnerabilite du joueur
     if(frameInvulnerable > 0){
         if(pv != 0 && reculDone == false){
-            if(pv == 3){
-                this.coeur_1 = this.add.image(player.x-50, player.y-550, 'coeurVide');
-            } else if(pv == 2){
-                this.coeur_2 = this.add.image(player.x-30, player.y-550, 'coeurVide');
-            } else if(pv == 1){
-                this.coeur_3 = this.add.image(player.x, player.y-550, 'coeurVide');
-            } pv = pv - 1;
+            if(pv == 3){this.coeur_1.destroy();}
+            else if(pv == 2){this.coeur_2.destroy();}
+            else if(pv == 1){this.coeur_3.destroy();}
+            pv = pv - 1;
         } if(reculDone == false){
             if(lastPose == "left"){
                 player.anims.play('left', true);
@@ -329,23 +327,18 @@ function update (){
             player.setVelocityY(-100);
             reculDone = true;
         } frameInvulnerable = frameInvulnerable - 1;
-        
-        // this.tweens.add({
-        //     alpha: 0,
-        //     ease: "Back.easeInOut", //https://rexrainbow.github.io/phaser3-rex-notes/docs/site/ease-function/
-        //     targets: player,
-        //     duration: 5000,
-        //     repeat: -1,
-        //     yoyo: true,
-        // })
-        
+        //personnage qui clignote
+        if((frameInvulnerable <= 120 && frameInvulnerable >= 110) || (frameInvulnerable <= 100 && frameInvulnerable >= 90) || (frameInvulnerable <= 80 && frameInvulnerable >= 70) || (frameInvulnerable <= 60 && frameInvulnerable >= 50) || (frameInvulnerable <= 40 && frameInvulnerable >= 30) || (frameInvulnerable <= 20 && frameInvulnerable >= 10)){player.setAlpha(0);}
+        else if ((frameInvulnerable <= 110 && frameInvulnerable >= 100) || (frameInvulnerable <= 90 && frameInvulnerable >= 80) || (frameInvulnerable <= 70 && frameInvulnerable >= 60) || (frameInvulnerable <= 50 && frameInvulnerable >= 40) || (frameInvulnerable <= 30 && frameInvulnerable >= 20) || (frameInvulnerable <= 10 && frameInvulnerable >= 0)){player.setAlpha(1);}
+        else{player.setAlpha(1);}
     }
+    
     if(hitPlayerByFireBall == true){
-        // this.cameras.main.shake(200);
+        this.cameras.main.shake(200);
         pv = 0;
-        this.coeur_1 = this.add.image(player.x-50, player.y-550, 'coeurVide');
-        this.coeur_2 = this.add.image(player.x-50, player.y-550, 'coeurVide');
-        this.coeur_3 = this.add.image(player.x-50, player.y-550, 'coeurVide');
+        this.coeur_1.destroy();
+        this.coeur_2.destroy();
+        this.coeur_3.destroy();
         fireball.disableBody(true, true);
     }
 
@@ -359,27 +352,23 @@ function update (){
     if(player.y+10 >= testOppo.y && player.y-10 <= testOppo.y && hitOppo == false){
         if(laserAlreadyShotEnnemi == false){
             if(player.x < testOppo.x && player.x > testOppo.x-800){
-                directionLaser = "left";
+                directionLaserEnnemi = "left";
                 laser = this.physics.add.sprite(testOppo.x+10, testOppo.y, 'laser');
                 laserAlreadyShotEnnemi = true;
             } else if(player.x > testOppo.x && player.x < testOppo.x+800){
-                directionLaser = "right";
+                directionLaserEnnemi = "right";
                 laser = this.physics.add.sprite(testOppo.x+10, testOppo.y, 'laser');
                 laserAlreadyShotEnnemi = true;
             } rechargeEnnemi = chiffreAleatoire(250, 500);
         }
     }
-    
-    // if(player.x < testOppo.x && player.x > testOppo.x-200){
-    //     directionLaser = "left";
-    // } else if(player.x > testOppo.x && player.x < testOppo.x+200){
 
     if(laserAlreadyShotEnnemi == true){
         this.physics.add.overlap(player, laser, hitPlayer);
         laser.setVelocityY(-5);
-        if(directionLaser == "left"){
+        if(directionLaserEnnemi == "left"){
             laser.setVelocityX(-1000);
-        } else if(directionLaser == "right"){
+        } else if(directionLaserEnnemi == "right"){
             laser.setVelocityX(1000);
         }if(laser.x >= 1280 || laser.x <= 0){
             laser.disableBody(true, true);
@@ -389,28 +378,32 @@ function update (){
         }
     }
 
-    // if (keyA.isDown && hit == false && laserAlreadyShotPlayer == false){
-    //     if(lastPose == "left" || cursors.left.isDown && keyA.isDown){
-    //         laserPlayer = this.physics.add.sprite(player.x+10, player.y, 'laser');
-    //         laserAlreadyShotPlayer = true;
-    //     } else if(lastPose == "right" || cursors.right.isDown && keyA.isDown){
-    //     }
-    // }
+    if (keyA.isDown && hit == false && laserAlreadyShotPlayer == false){
+        if(lastPose == "left" || (cursors.left.isDown && keyA.isDown)){
+            laserPlayer = this.physics.add.sprite(player.x+10, player.y, 'laser');
+            laserAlreadyShotPlayer = true;
+            directionLaserPlayer = "left";
+        } else if(lastPose == "right" || cursors.right.isDown && keyA.isDown){
+            laserPlayer = this.physics.add.sprite(player.x-10, player.y, 'laser');
+            laserAlreadyShotPlayer = true;
+            directionLaserPlayer = "right";
+        } rechargePlayer = 100;
+    }
 
-    // if(laserAlreadyShotPlayer == true){
-    //     this.physics.add.overlap(player, laser, hitPlayer);
-    //     laser.setVelocityY(-5);
-    //     if(directionLaser == "left"){
-    //         laser.setVelocityX(-1000);
-    //     } else if(directionLaser == "right"){
-    //         laser.setVelocityX(1000);
-    //     }if(laser.x >= 1280 || laser.x <= 0){
-    //         laser.disableBody(true, true);
-    //     } rechargePlayer = rechargePlayer - 1;
-    //     if (rechargePlayer == 0){
-    //         laserAlreadyShotPlayer = false;
-    //     }
-    // }
+    if(laserAlreadyShotPlayer == true){
+        this.physics.add.overlap(laserPlayer, testOppo, hitOppoLaser);
+        laserPlayer.setVelocityY(-5);
+        if(directionLaserPlayer == "left"){
+            laserPlayer.setVelocityX(-1000);
+        } else if(directionLaserPlayer == "right"){
+            laserPlayer.setVelocityX(1000);
+        }if(laserPlayer.x >= 1280 || laserPlayer.x <= 0){
+            laserPlayer.disableBody(true, true);
+        } rechargePlayer = rechargePlayer - 1;
+        if (rechargePlayer == 0){
+            laserAlreadyShotPlayer = false;
+        }
+    }
     
     //Pour la fireball (élément qui tue instantanément)
     if(fireballCanBeGenerated == true){
@@ -479,22 +472,35 @@ function colliderPlatformPlayer(){
     }
 }
 
+//quand en contact avec le powerUp / overlap
 function powerUpFunction(){
     powerUp.disableBody(true, true);
     player.setVelocityY(-1500);
 }
 
+//quand le joueur tire sur l'ennmi / overlap
+function hitOppoLaser(){
+    laserPlayer.disableBody(true, true);
+    testOppo.disableBody(true, true);
+    hitOppoByLaserPlayer = true;
+    hitOppo = true;
+}
+
+//quand l'ennemi ou laserEnnmi touche le joueur / overlap
 function hitPlayer(){
     if(frameInvulnerable == 0 && pv != 0){
-        frameInvulnerable = 100; 
+        frameInvulnerable = 120; 
         reculDone = false;
     }
 }
 
-    function crashFireball(){particuleGenerate = false;crashFireballTest = true;}
+//quand la fireball touche le sol / collider
+function crashFireball(){particuleGenerate = false;crashFireballTest = true;}
 
+//quand la fireball touche le joueur / overlap
 function fireballHitingPlayer(){hitPlayerByFireBall = true; fireballCanBeGenerated = true}
 
+//quand la fireball touche l'ennmi / overlap
 function fireballHitingOppo(){
     fireball.disableBody(true, true);
     testOppo.disableBody(true, true)
@@ -502,4 +508,5 @@ function fireballHitingOppo(){
     hitOppoByFireBall = true;
 }
 
+//permet la génération d'un chiffre aléatoire
 function chiffreAleatoire(min, max){min = Math.ceil(min);max = Math.floor(max);return Math.floor(Math.random() * (max - min)) + min;}

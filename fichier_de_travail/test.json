@@ -1,0 +1,34 @@
+{ "compressionlevel":-1,
+ "height":2,
+ "infinite":false,
+ "layers":[
+        {
+         "compression":"",
+         "data":"AQAAAAEAAAABAAAAAQAAgAEAAAABAAAAAQAAgAEAAAABAACAAQAAAAEAAIABAAAAAQAAAAEAAAABAAAAAQAAgAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAgAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAIAAAABAAAAAQAAAAwAAAAMAAAACQAAAAgAAMAMAAAADAAAAAwAAAAMAAAADAAAAAwAAAAMAAAADAAAAAwAAAAJAADgDAAAAAwAAAAMAAAADAAAAAwAAAAMAAAADAAAAAwAAAAMAAAADAAAAAwAAAAMAAAADAAAAAwAAAAMAAAADAAAAAwAAAAJAABADAAAAAwAAAAMAAAADAAAAAwAAAAIAAAADAAAAAwAAAA=",
+         "encoding":"base64",
+         "height":2,
+         "id":1,
+         "name":"Calque de Tuiles 1",
+         "opacity":1,
+         "type":"tilelayer",
+         "visible":true,
+         "width":40,
+         "x":0,
+         "y":0
+        }],
+ "nextlayerid":2,
+ "nextobjectid":1,
+ "orientation":"orthogonal",
+ "renderorder":"left-down",
+ "tiledversion":"1.4.2",
+ "tileheight":32,
+ "tilesets":[
+        {
+         "firstgid":1,
+         "source":"tileSheet.tsx"
+        }],
+ "tilewidth":32,
+ "type":"map",
+ "version":1.4,
+ "width":40
+}
