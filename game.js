@@ -42,7 +42,6 @@ var checkUpisUp = false;
 var startJetPackDone = false;
 var frameCheckOnce = false;
 
-
 //variables pour ennmis
 var timerEnnemi = 0;
 var deplacementEnnemi;
@@ -57,6 +56,8 @@ var laserAlreadyShotEnnemi = false;
 var rechargeEnnemi;
 var lastPose = "right";
 var hitAstraunaute = false;
+var pauseShootEnnemi = false;
+var tempsDePauseEnnemi = 0
 
 //pour joueur qui tire
 var laserAlreadyShotPlayer = false;
@@ -95,7 +96,7 @@ function preload (){
     this.load.spritesheet('dude', 'assets/dude.png', {frameWidth: 32, frameHeight: 48});
     this.load.spritesheet('midground', 'fichier_de_travail/spriteSheetFond-assets/midgroundSpriteSheet.png', {frameWidth: 1870, frameHeight: 441});
     this.load.spritesheet('fireball', 'fichier_de_travail/spriteSheetFireBall-assets/spriteSheetFireBall.png', {frameWidth: 67, frameHeight: 114});
-    this.load.spritesheet('astraunaute', 'fichier_de_travail/spriteSheetAstraunaute-assets/spriteSheetAstraunaute.png', {frameWidth: 42, frameHeight: 78});
+    this.load.spritesheet('astraunaute', 'fichier_de_travail/spriteSheetAstraunaute-assets/spriteSheetAstraunaute.png', {frameWidth: 42, frameHeight: 79});
 }
 
 function create (){
@@ -185,6 +186,7 @@ function create (){
 
     this.anims.create({
         key: 'marcheDroit',
+        // frames: [{key: 'astraunaute', frame: 7}],
         frames: this.anims.generateFrameNumbers('astraunaute', {start: 5, end: 8}),
         frameRate: 10,
         repeat: -1,
@@ -301,14 +303,11 @@ function update (){
         }
         // text.destroy();
     }
-    // astraunaute.anims.play('idleGauche', true);
-    // astraunaute.anims.play('idleDroit', true);
-    // astraunaute.anims.play('marcheGauche', true);
-    // astraunaute.anims.play('marcheDroit', true);
+
     timerEnnemi = timerEnnemi + 1;
     //comportement de l'ennemi
     //working but look at acceleration
-    if(timerEnnemi >= 0 && timerEnnemi < 100){
+    if(timerEnnemi >= 0 && timerEnnemi < 100 && pauseShootEnnemi == false){
         if(alreadyShuffle == false){
             frameDePause1 = chiffreAleatoire(10, 250);
             frameDePause2 = chiffreAleatoire(10, 250);
@@ -320,17 +319,17 @@ function update (){
         astraunaute.anims.play('idleGauche', true);
         alreadyShuffle = false;
         astraunaute.setVelocityX(0);
-    } else if (timerEnnemi > frameDePause1 && timerEnnemi < (frameDePause1+frameDePause2)){
+    } else if (timerEnnemi > frameDePause1 && timerEnnemi < (frameDePause1+frameDePause2) && pauseShootEnnemi == false ){
         if(alreadyShuffle == false){
             deplacementEnnemi = chiffreAleatoire(100, 300);
             alreadyShuffle = true;
         } astraunaute.anims.play('marcheDroit', true);
         astraunaute.setVelocityX(deplacementEnnemi);
-    } else if (timerEnnemi > (frameDePause1+frameDePause2) && timerEnnemi < (frameDePause1+frameDePause2+((frameDePause1+frameDePause2)/2))){
+    } else if (timerEnnemi > (frameDePause1+frameDePause2) && timerEnnemi < (frameDePause1+frameDePause2+((frameDePause1+frameDePause2)/2)) && pauseShootEnnemi == false){
         astraunaute.anims.play('idleDroit', true);
         alreadyShuffle = false;
         astraunaute.setVelocityX(0);
-    } else if (timerEnnemi >= (frameDePause1+frameDePause2+((frameDePause1+frameDePause2)/2))){timerEnnemi = 0;}
+    } else if (timerEnnemi >= (frameDePause1+frameDePause2+((frameDePause1+frameDePause2)/2)) && pauseShootEnnemi == false ){timerEnnemi = 0;}
 
     //invulnerabilite du joueur
     if(frameInvulnerable > 0){
@@ -379,13 +378,27 @@ function update (){
         if(laserAlreadyShotEnnemi == false){
             if(player.x < astraunaute.x && player.x > astraunaute.x-800){
                 directionLaserEnnemi = "left";
+                astraunaute.anims.play('idleGauche', true);
                 laser = this.physics.add.sprite(astraunaute.x+10, astraunaute.y, 'laser');
                 laserAlreadyShotEnnemi = true;
             } else if(player.x > astraunaute.x && player.x < astraunaute.x+800){
                 directionLaserEnnemi = "right";
+                astraunaute.anims.play('idleDroit', true);
                 laser = this.physics.add.sprite(astraunaute.x+10, astraunaute.y, 'laser');
                 laserAlreadyShotEnnemi = true;
             } rechargeEnnemi = chiffreAleatoire(250, 500);
+            tempsDePauseEnnemi = chiffreAleatoire(100, 250);
+            pauseShootEnnemi = true;
+        }
+    }
+
+    //pour que l'astraunaute arrete de bouger après un tir
+    if(pauseShootEnnemi == true){
+        astraunaute.setVelocityX(0);
+        if(tempsDePauseEnnemi >= 0){
+            tempsDePauseEnnemi = tempsDePauseEnnemi - 1;
+        } else if(tempsDePauseEnnemi <= 0){
+            pauseShootEnnemi = false;
         }
     }
 
@@ -399,7 +412,9 @@ function update (){
         }if(laser.x >= 1280 || laser.x <= 0){
             laser.disableBody(true, true);
         } rechargeEnnemi = rechargeEnnemi - 1;
-        if (rechargeEnnemi == 0){
+        if(rechargeEnnemi <= 50){
+            pauseShootEnnemi = false;
+        } if (rechargeEnnemi == 0){
             laserAlreadyShotEnnemi = false;
         }
     }
