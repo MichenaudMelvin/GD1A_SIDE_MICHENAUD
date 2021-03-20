@@ -56,20 +56,20 @@ var directionLaserEnnemi;
 var laserAlreadyShotEnnemi = false;
 var rechargeEnnemi;
 var lastPose = "right";
-var hitOppo = false;
+var hitAstraunaute = false;
 
 //pour joueur qui tire
 var laserAlreadyShotPlayer = false;
 var rechargePlayer;
 var directionLaserPlayer;
-var hitOppoByLaserPlayer;
+var hitAstraunauteByLaserPlayer;
 
 //pour la fireball
 var particuleGenerate = false;
 var crashFireballTest = false;
 var chanceFireball = 0;
 var fireballCanBeGenerated = true;
-var hitOppoByFireBall = false;
+var hitAstraunauteByFireBall = false;
 var hitPlayerByFireBall = false;
 
 //pour l'animation du midground
@@ -78,7 +78,7 @@ var secondPart = false;
 var frameMidground = 0;
 
 function preload (){
-    this.load.image('test', 'assets/testItem.png');
+    this.load.image('test', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/test.png');
     this.load.image('background', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/background.png');
     this.load.image('ground', 'fichier_de_travail/test.png');
     // this.load.tilemap('ground', 'fichier_de_travail/test.json', null, Phaser.Tilemap.TILED_JSON);
@@ -89,11 +89,13 @@ function preload (){
     this.load.image('particule_1', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/particule_1.png');
     this.load.image('particule_2', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/particule_2.png');
     this.load.image('particule_3', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/particule_3.png');
+    this.load.image('hereComesTheSun', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/sun.png');
 
     //load de toutes les sprites sheets
     this.load.spritesheet('dude', 'assets/dude.png', {frameWidth: 32, frameHeight: 48});
-    this.load.spritesheet('midground', 'fichier_de_travail/spriteSheetFond-assets/midgroundSpriteSheet.png', {frameWidth: 1870, frameHeight: 440});
+    this.load.spritesheet('midground', 'fichier_de_travail/spriteSheetFond-assets/midgroundSpriteSheet.png', {frameWidth: 1870, frameHeight: 441});
     this.load.spritesheet('fireball', 'fichier_de_travail/spriteSheetFireBall-assets/spriteSheetFireBall.png', {frameWidth: 67, frameHeight: 114});
+    this.load.spritesheet('astraunaute', 'fichier_de_travail/spriteSheetAstraunaute-assets/spriteSheetAstraunaute.png', {frameWidth: 42, frameHeight: 78});
 }
 
 function create (){
@@ -101,24 +103,26 @@ function create (){
     this.background = this.add.image(0, 0, 'background');
     this.background.setOrigin(0, 0);
     this.background.setScrollFactor(0);
-    
+
+    sun = this.physics.add.staticGroup();
+    sun.create(50, 100, 'hereComesTheSun');
+
     midground = this.add.sprite(640, 424, 'midground');
     // this.midground.setOrigin(0, 0);
     // this.midground.setScrollFactor(0);
     // midground.addTilesetImage('ground', 'tiles');
 
     platforms = this.physics.add.staticGroup();
-    vie = this.physics.add.staticGroup();
 
     platforms.create(640, 675, 'ground'); //sol
 
     player = this.physics.add.sprite(100, 600, 'dude');
-    testOppo = this.physics.add.sprite(700, 600, 'test');
+    astraunaute = this.physics.add.sprite(700, 500, 'astraunaute');
 
     player.setBounce(0); //just for debug, when it's done set to 0.5 
     player.setCollideWorldBounds(true);
-    testOppo.setCollideWorldBounds(true);
-    
+    astraunaute.setCollideWorldBounds(true);
+
     //creation toutes les animations
     //animation personnage joueur, tag = dude
     this.anims.create({
@@ -148,21 +152,47 @@ function create (){
         frameRate: 10,
         repeat: -1,
     });
+    // fireball.anims.play('animationFireBall', true);
 
     //animation midground, tag = midground
     this.anims.create({
-        key: 'animationMidgroundFirstPart',
-        frames: this.anims.generateFrameNumbers('midground', {start: 0, end: 9}),
+        key: 'animatonMidground',
+        frames: this.anims.generateFrameNumbers('midground', {start: 0, end: 19}),
         frameRate: 10,
         repeat: -1,
-    })
+    });
+    // midground.anims.play('animatonMidground', true);
+
+    //animation de l'ennemi, tag = astraunaute
+    this.anims.create({
+        key: 'idleGauche',
+        frames: [{key: 'astraunaute', frame: 3}],
+        frameRate: 20
+    });
 
     this.anims.create({
-        key: 'animationMidgroundSecondPart',
-        frames: this.anims.generateFrameNumbers('midground', {start: 10, end: 8}),
+        key: 'idleDroit',
+        frames: [{key: 'astraunaute', frame: 4}],
+        frameRate: 20
+    });
+
+    this.anims.create({
+        key: 'marcheGauche',
+        frames: this.anims.generateFrameNumbers('astraunaute', {start: 2, end: 0}),
         frameRate: 10,
         repeat: -1,
-    })
+    });
+
+    this.anims.create({
+        key: 'marcheDroit',
+        frames: this.anims.generateFrameNumbers('astraunaute', {start: 5, end: 8}),
+        frameRate: 10,
+        repeat: -1,
+    });
+    // astraunaute.anims.play('idleGauche', true);
+    // astraunaute.anims.play('idleDroit', true);
+    // astraunaute.anims.play('marcheGauche', true);
+    // astraunaute.anims.play('marcheDroit', true);
 
     cursors = this.input.keyboard.createCursorKeys();
     keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A)
@@ -170,14 +200,14 @@ function create (){
     //gestion des collisions
     this.physics.add.collider(player, platforms, colliderPlatformPlayer);
     // this.physics.add.collider(laser, platforms, laserCollider);
-    this.physics.add.collider(testOppo, platforms);
-    this.physics.add.overlap(player, testOppo, hitPlayer);
+    this.physics.add.collider(astraunaute, platforms);
+    this.physics.add.overlap(player, astraunaute, hitPlayer);
     //quand powerUp est touché
     //this.physics.add.overlap(player, powerUp, powerUpFunction);
 
     //creation de la caméra
-    this.cameras.main.startFollow(player);
-    this.cameras.main.setSize(1280,720);
+    // this.cameras.main.startFollow(player);
+    // this.cameras.main.setSize(1280,720);
 
     //pour l'interface
     this.coeur_1_vide = this.add.image(player.x-50, player.y-550, 'coeurVide');
@@ -195,7 +225,7 @@ function create (){
 }
 
 function update (){
-    this.background.tilePositionX = this.cameras.scrollX * .3;
+    // this.background.tilePositionX = this.cameras.scrollX * .3;
 
     // if (pv == 0){
     //     player.setVelocityX(0);
@@ -211,21 +241,7 @@ function update (){
     
     //animation du midground en continu
     frameMidground = frameMidground+1;
-    if(firstPart == true){
-        midground.anims.play('animationMidgroundFirstPart', true);
-        if(frameMidground >= 60){
-            firstPart = false;
-            secondPart = true;
-            frameMidground = 0;
-        }
-    } else if(secondPart == true){
-        midground.anims.play('animationMidgroundSecondPart', true);
-        if(frameMidground >= 60){
-            firstPart = true;
-            secondPart = false;
-            frameMidground = 0;
-        }
-    }
+    midground.anims.play('animatonMidground', true);
 
     //simples moves
     if(hit == false){
@@ -285,7 +301,10 @@ function update (){
         }
         // text.destroy();
     }
-
+    // astraunaute.anims.play('idleGauche', true);
+    // astraunaute.anims.play('idleDroit', true);
+    // astraunaute.anims.play('marcheGauche', true);
+    // astraunaute.anims.play('marcheDroit', true);
     timerEnnemi = timerEnnemi + 1;
     //comportement de l'ennemi
     //working but look at acceleration
@@ -295,18 +314,22 @@ function update (){
             frameDePause2 = chiffreAleatoire(10, 250);
             deplacementEnnemi = (-chiffreAleatoire(100, 300));
             alreadyShuffle = true;
-        } testOppo.setVelocityX(deplacementEnnemi);
+        } astraunaute.anims.play('marcheGauche', true);
+        astraunaute.setVelocityX(deplacementEnnemi);
     } else if (timerEnnemi > 100 && timerEnnemi < frameDePause1){
+        astraunaute.anims.play('idleGauche', true);
         alreadyShuffle = false;
-        testOppo.setVelocityX(0);
+        astraunaute.setVelocityX(0);
     } else if (timerEnnemi > frameDePause1 && timerEnnemi < (frameDePause1+frameDePause2)){
         if(alreadyShuffle == false){
             deplacementEnnemi = chiffreAleatoire(100, 300);
             alreadyShuffle = true;
-        } testOppo.setVelocityX(deplacementEnnemi);
+        } astraunaute.anims.play('marcheDroit', true);
+        astraunaute.setVelocityX(deplacementEnnemi);
     } else if (timerEnnemi > (frameDePause1+frameDePause2) && timerEnnemi < (frameDePause1+frameDePause2+((frameDePause1+frameDePause2)/2))){
+        astraunaute.anims.play('idleDroit', true);
         alreadyShuffle = false;
-        testOppo.setVelocityX(0);
+        astraunaute.setVelocityX(0);
     } else if (timerEnnemi >= (frameDePause1+frameDePause2+((frameDePause1+frameDePause2)/2))){timerEnnemi = 0;}
 
     //invulnerabilite du joueur
@@ -334,7 +357,7 @@ function update (){
     }
     
     if(hitPlayerByFireBall == true){
-        this.cameras.main.shake(200);
+        // this.cameras.main.shake(200);
         pv = 0;
         this.coeur_1.destroy();
         this.coeur_2.destroy();
@@ -346,18 +369,21 @@ function update (){
     //     this.tweens.add({alpha: 1,targets: player,})
     // }
 
-    if(hitOppoByFireBall == true){hitOppo = true;this.cameras.main.shake(200);hitOppoByFireBall = false;}
+    if(hitAstraunauteByFireBall == true){
+        hitAstraunaute = true;
+        // this.cameras.main.shake(200);
+        hitAstraunauteByFireBall = false;}
 
     //permetra le tri de l'ennemi
-    if(player.y+10 >= testOppo.y && player.y-10 <= testOppo.y && hitOppo == false){
+    if(player.y+10 >= astraunaute.y && player.y-10 <= astraunaute.y && hitAstraunaute == false){
         if(laserAlreadyShotEnnemi == false){
-            if(player.x < testOppo.x && player.x > testOppo.x-800){
+            if(player.x < astraunaute.x && player.x > astraunaute.x-800){
                 directionLaserEnnemi = "left";
-                laser = this.physics.add.sprite(testOppo.x+10, testOppo.y, 'laser');
+                laser = this.physics.add.sprite(astraunaute.x+10, astraunaute.y, 'laser');
                 laserAlreadyShotEnnemi = true;
-            } else if(player.x > testOppo.x && player.x < testOppo.x+800){
+            } else if(player.x > astraunaute.x && player.x < astraunaute.x+800){
                 directionLaserEnnemi = "right";
-                laser = this.physics.add.sprite(testOppo.x+10, testOppo.y, 'laser');
+                laser = this.physics.add.sprite(astraunaute.x+10, astraunaute.y, 'laser');
                 laserAlreadyShotEnnemi = true;
             } rechargeEnnemi = chiffreAleatoire(250, 500);
         }
@@ -391,7 +417,7 @@ function update (){
     }
 
     if(laserAlreadyShotPlayer == true){
-        this.physics.add.overlap(laserPlayer, testOppo, hitOppoLaser);
+        this.physics.add.overlap(laserPlayer, astraunaute, hitAstraunauteLaser);
         laserPlayer.setVelocityY(-5);
         if(directionLaserPlayer == "left"){
             laserPlayer.setVelocityX(-1000);
@@ -424,7 +450,7 @@ function update (){
             } fireballCanBeGenerated = false;
             this.physics.add.collider(fireball, platforms, crashFireball);
             this.physics.add.overlap(fireball, player, fireballHitingPlayer);
-            this.physics.add.overlap(fireball, testOppo, fireballHitingOppo);
+            this.physics.add.overlap(fireball, astraunaute, fireballHitingOppo);
         }
     } else if (fireballCanBeGenerated == false){
         if(fireball.y >= 1280){
@@ -435,7 +461,7 @@ function update (){
 
     if(crashFireballTest == true){
         if(particuleGenerate == false){
-            this.cameras.main.shake(200);
+            // this.cameras.main.shake(200);
             particule_1 = this.physics.add.sprite(fireball.x+10, fireball.y+60, 'particule_1');
             particule_2 = this.physics.add.sprite(fireball.x-20, fireball.y+55, 'particule_2');
             particule_3 = this.physics.add.sprite(fireball.x-5, fireball.y+50, 'particule_3');
@@ -479,11 +505,11 @@ function powerUpFunction(){
 }
 
 //quand le joueur tire sur l'ennmi / overlap
-function hitOppoLaser(){
+function hitAstraunauteLaser(){
     laserPlayer.disableBody(true, true);
-    testOppo.disableBody(true, true);
-    hitOppoByLaserPlayer = true;
-    hitOppo = true;
+    astraunaute.disableBody(true, true);
+    hitAstraunauteByLaserPlayer = true;
+    hitAstraunaute = true;
 }
 
 //quand l'ennemi ou laserEnnmi touche le joueur / overlap
@@ -503,9 +529,9 @@ function fireballHitingPlayer(){hitPlayerByFireBall = true; fireballCanBeGenerat
 //quand la fireball touche l'ennmi / overlap
 function fireballHitingOppo(){
     fireball.disableBody(true, true);
-    testOppo.disableBody(true, true)
+    astraunaute.disableBody(true, true)
     fireballCanBeGenerated = true;
-    hitOppoByFireBall = true;
+    hitAstraunauteByFireBall = true;
 }
 
 //permet la génération d'un chiffre aléatoire
