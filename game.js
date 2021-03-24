@@ -122,6 +122,7 @@ function preload (){
     this.load.spritesheet('fireball', 'fichier_de_travail/spriteSheetFireBall-assets/spriteSheetFireBall.png', {frameWidth: 67, frameHeight: 114});
     this.load.spritesheet('astraunaute', 'fichier_de_travail/spriteSheetAstraunaute-assets/spriteSheetAstraunaute.png', {frameWidth: 42, frameHeight: 79});
     this.load.spritesheet('jetpackItem', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/spriteSheetJetpack.png', {frameWidth: 35, frameHeight: 37});
+    this.load.spritesheet('texteEcranTitre', 'fichier_de_travail/spriteSheetTexteEcranTitre-assets/spriteSheetTexteEcranTitre.png', {frameWidth: 804, frameHeight: 60});
 }
 
 function create (){
@@ -129,6 +130,9 @@ function create (){
     this.ecranTitre = this.add.image(0, 0, 'ecranTitre');
     this.ecranTitre.setOrigin(0, 0);
 
+    texteEcranTitre = this.add.sprite(850, 600, 'texteEcranTitre');
+    // player = this.physics.add.sprite(100, 600, 'alien');
+    // astraunaute = this.physics.add.sprite(700, 500, 'astraunaute');
     //creation toutes les animations
     //animation personnage joueur, tag = alien
     //idle du personnage sans le jetpack
@@ -214,7 +218,7 @@ function create (){
     //animation midground, tag = midground
     this.anims.create({
         key: 'animatonMidground',
-        frames: this.anims.generateFrameNumbers('midground', {start: 0, end: 19}),
+        frames: this.anims.generateFrameNumbers('midground', {start: 0, end: 18}),
         frameRate: 10,
         repeat: -1,
     });
@@ -246,11 +250,6 @@ function create (){
         frameRate: 10,
         repeat: -1,
     });
-    // astraunaute.anims.play('idleGauche', true);
-    // astraunaute.anims.play('idleDroit', true);
-    // astraunaute.anims.play('marcheGauche', true);
-    // astraunaute.anims.play('marcheDroit', true);
-
 
     //animation power up, tag = jetpackItem
     this.anims.create({
@@ -258,6 +257,14 @@ function create (){
         frames: this.anims.generateFrameNumbers('jetpackItem', {start: 0, end: 3}),
         frameRate: 10,
         repeat: -1,
+    })
+
+    //animation du texte de l'écran titre, tag = texteEcranTitre
+    this.anims.create({
+        key: 'animationTexteEcranTitre',
+        frames: this.anims.generateFrameNumbers('texteEcranTitre', {start: 0, end: 19}),
+        frameRate: 15,
+        repeat: -1
     })
 
     cursors = this.input.keyboard.createCursorKeys();
@@ -269,7 +276,7 @@ function create (){
 
 function update (){
     if(resetGame == true){
-        this.cameras.main.fadeIn(500, 0, 0, 0)
+        this.cameras.main.fadeIn(500, 0, 0, 0);
         this.ecranTitre = this.add.image(0, 0, 'ecranTitre');
         this.ecranTitre.setOrigin(0, 0);
         resetGame = false;
@@ -278,14 +285,19 @@ function update (){
         location.reload();
     }
 
+    
+
     if(keyA.isDown && gameLoad == false){
-        this.cameras.main.fadeOut(500, 0, 0, 0)
+        this.cameras.main.fadeOut(500, 0, 0, 0);
         tempsDePauseEcranTitre = 100;
         gameCanBeLoad = true;
     }
-    // if(gameCanBeLoad == false){
-    //     this.cameras.startFollow(ecranTitre);
-    // }
+
+    if(gameCanBeLoad == false){
+        //pour faire clignoter le texte "appuyez sur A pour commencer"
+        texteEcranTitre.anims.play('animationTexteEcranTitre', true);
+        // this.cameras.startFollow(ecranTitre);
+    }
 
     if(gameCanBeLoad == true && gameLoad == false){
         tempsDePauseEcranTitre = tempsDePauseEcranTitre - 1
@@ -303,6 +315,7 @@ function update (){
 
             this.cameras.main.fadeIn(500, 0, 0, 0);
             this.ecranTitre.destroy();
+            texteEcranTitre.destroy();
             //creation des toutes les images
             this.background = this.add.image(0, 0, 'background');
             this.background.setOrigin(0, 0);
@@ -442,7 +455,7 @@ function update (){
                     ableToUseJet = true;
                 }
 
-                if (!player.body.touching.down && cursors.up.isUp && ableToUseJet == true && jetpackValue > 0 && hit == false){
+                if (!player.body.touching.down && cursors.up.isUp && ableToUseJet == true && jetpackValue > 0 && hit == false && playerHaveJetPack == true){
                     checkUpisUp = true;
                 } if (cursors.up.isDown && checkUpisUp == true && ableToUseJet == true && jetpackValue > 0){
                     jetpackValue = jetpackValue - 1
