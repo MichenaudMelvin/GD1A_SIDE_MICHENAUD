@@ -96,7 +96,6 @@ var paddle;
 //pour l'écran titre:
 var gameCanBeLoad = false;
 var gameLoad = false;
-var resetGame = false;
 var tempsDePauseEcranTitre;
 var tempsDeReload;
 var playerIsDead = false;
@@ -115,6 +114,7 @@ function preload (){
     this.load.image('particule_3', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/particule_3.png');
     this.load.image('hereComesTheSun', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/sun.png');
     this.load.image('ecranTitre', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/ecranTitre.png');
+    this.load.image('gameOverScreen', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/gameOverScreen.png');
 
     //load de toutes les sprites sheets
     this.load.spritesheet('alien', 'fichier_de_travail/spriteSheetAlien-assets/spriteSheetAlien.png', {frameWidth: 34, frameHeight: 73});
@@ -275,18 +275,6 @@ function create (){
 }
 
 function update (){
-    if(resetGame == true){
-        this.cameras.main.fadeIn(500, 0, 0, 0);
-        this.ecranTitre = this.add.image(0, 0, 'ecranTitre');
-        this.ecranTitre.setOrigin(0, 0);
-        resetGame = false;
-        gameCanBeLoad = false;
-        gameLoad = false;
-        location.reload();
-    }
-
-    
-
     if(keyA.isDown && gameLoad == false){
         this.cameras.main.fadeOut(500, 0, 0, 0);
         tempsDePauseEcranTitre = 100;
@@ -346,7 +334,8 @@ function update (){
 
             player = this.physics.add.sprite(100, 600, 'alien');
             astraunaute = this.physics.add.sprite(700, 500, 'astraunaute');
-            
+            this.physics.world.setBounds(0, 0, 4512, 1440);
+            this.cameras.main.setBounds(0, 0, 4512, 1440);
 
             player.setBounce(0); //just for debug, when it's done set to 0.5 
             player.setCollideWorldBounds(true);
@@ -395,8 +384,13 @@ function update (){
                 tempsDeReload = tempsDeReload - 1;
                 console.log(tempsDeReload);
             } else if (tempsDeReload == 0){
-                this.cameras.main.fadeOut(500, 0, 0, 0);
-                resetGame = true;
+                this.gameOverScreen = this.add.image(0, 0, 'gameOverScreen');
+                this.gameOverScreen.setOrigin(0, 0);
+                this.cameras.main.startFollow(this.gameOverScreen);
+                if(keyA.isDown){
+                    // this.cameras.main.fadeOut(500, 0, 0, 0);
+                    location.reload();
+                }
             }
         }
         if(jetpackCanSpawn == true){
