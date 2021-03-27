@@ -40,6 +40,9 @@ var reculDone;
 var pv;
 var frameInvulnerable = 0;
 
+//pour la gestion de la camera
+var decalageVerticaleCamera = 260;
+
 //variables qui permette le jetpack
 var text;
 var jetpackValue = 100;
@@ -103,11 +106,10 @@ var tempsDeReload;
 var playerIsDead = false;
 
 function preload (){
-    this.load.image('test', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/test.png');
-    this.load.image('background', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/background.png');
+    this.load.image('background', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/fond.png');
     this.load.image('ground', 'fichier_de_travail/test.png');
-    this.load.image('tilesGround', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/tileSheet.png');
-    this.load.tilemapTiledJSON('ground', 'fichier_de_travail/test.json');
+    // this.load.image('tilesGround', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/tileSheet.png');
+    // this.load.tilemapTiledJSON('ground', 'fichier_de_travail/test.json');
     this.load.image('coeur', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/coeur.png');
     this.load.image('coeurVide', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/coeurVide.png');
     this.load.image('laser', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/laser.png');
@@ -312,14 +314,13 @@ function update (){
             this.ecranTitre.destroy();
             texteEcranTitre.destroy();
             //creation des toutes les images
-            this.background = this.add.image(0, 0, 'background');
-            this.background.setOrigin(0, 0);
-            this.background.setScrollFactor(0);
+            this.background = this.add.image(2256, 720, 'background');
+            // this.background.setScrollFactor(0);
 
             sun = this.physics.add.staticGroup();
-            sun.create(50, 100, 'hereComesTheSun');
+            sun.create(50, 882, 'hereComesTheSun');
 
-            midground = this.add.sprite(2256, 441, 'midground');
+            midground = this.add.sprite(2256, 1213, 'midground');
 
             // const platforms = this.make.tilemap({key: 'ground'});
             // const tiles = platforms.addTilesetImage('tileSheet', 'tilesGround');
@@ -327,15 +328,15 @@ function update (){
             // const layer = platforms.createStaticLayer(0, tiles, 0, 0);
 
             platforms = this.physics.add.staticGroup();
-            platforms.create(2256, 688, 'ground'); //sol
-            
-            //entités + caméra
-            player = this.physics.add.sprite(100, 600, 'alien');
-            astraunaute = this.physics.add.sprite(700, 500, 'astraunaute');
-            this.physics.world.setBounds(0, 0, 4512, 1440);
-            this.cameras.main.setBounds(0, 0, 4512, 1440);
+            platforms.create(2256, 1440, 'ground'); //sol
 
-            player.setBounce(0); //just for debug, when it's done set to 0.5 
+            //entités + caméra
+            player = this.physics.add.sprite(100, 1372, 'alien');
+            astraunaute = this.physics.add.sprite(700, 1372, 'astraunaute');
+            this.physics.world.setBounds(0, 0, 4512, 1440);
+            this.cameras.main.setBounds(0, 0, 4512, 1472);
+
+            player.setBounce(0.5); //just for debug, when it's done set to 0.5 
             player.setCollideWorldBounds(true);
             astraunaute.setCollideWorldBounds(true);
 
@@ -345,15 +346,15 @@ function update (){
             this.physics.add.overlap(player, astraunaute, hitPlayer);
 
             //pour l'interface
-            this.coeur_1_vide = this.add.image(player.x-50, player.y-550, 'coeurVide');
-            this.coeur_2_vide = this.add.image(player.x+10, player.y-550, 'coeurVide');
-            this.coeur_3_vide = this.add.image(player.x+70, player.y-550, 'coeurVide');
+            this.coeur_1_vide = this.add.image(player.x-50, player.y-1302, 'coeurVide');
+            this.coeur_2_vide = this.add.image(player.x+10, player.y-1302, 'coeurVide');
+            this.coeur_3_vide = this.add.image(player.x+70, player.y-1302, 'coeurVide');
             this.coeur_1_vide.setScrollFactor(0);
             this.coeur_2_vide.setScrollFactor(0);
             this.coeur_3_vide.setScrollFactor(0);
-            this.coeur_1 = this.add.image(player.x-50, player.y-550, 'coeur');
-            this.coeur_2 = this.add.image(player.x+10, player.y-550, 'coeur');
-            this.coeur_3 = this.add.image(player.x+70, player.y-550, 'coeur');
+            this.coeur_1 = this.add.image(player.x-50, player.y-1302, 'coeur');
+            this.coeur_2 = this.add.image(player.x+10, player.y-1302, 'coeur');
+            this.coeur_3 = this.add.image(player.x+70, player.y-1302, 'coeur');
             this.coeur_1.setScrollFactor(0);
             this.coeur_2.setScrollFactor(0);
             this.coeur_3.setScrollFactor(0);
@@ -389,10 +390,10 @@ function update (){
                 tempsDeReload = tempsDeReload - 1;
             } else if (tempsDeReload == 0){
                 tempsDeReload = tempsDeReload - 1;
-                console.log(tempsDeReload)
                 player.x = 640;
                 player.y = 619.5;
-                this.gameOverScreen = this.add.image(player.x, player.y-260, 'gameOverScreen');
+                decalageVerticaleCamera = 260;
+                this.gameOverScreen = this.add.image(player.x, player.y-259, 'gameOverScreen');
                 //pour faire clignoter le texte "appuyez sur A pour recommencer"
                 texteGameOver = this.add.sprite(640, 600, 'texteGameOver');
                 texteGameOver.anims.play('animationTexteGameOver', true);
@@ -415,7 +416,17 @@ function update (){
             jetpackCanSpawn = false;
         }
 
-        this.cameras.main.startFollow(player, false, 1, 1, 0, 720);
+        //ici decalageVerticaleCamera varie entre 260 et 0 pour décaler la caméra et mieux y voir lors d'un saut ou de l'utilisation du jetpack
+        if(player.y < 1380 && playerIsDead == false){
+            if(decalageVerticaleCamera >= 0){decalageVerticaleCamera = decalageVerticaleCamera - 5;}
+            if(decalageVerticaleCamera < 0){decalageVerticaleCamera = 0;}
+            this.cameras.main.startFollow(player, false, 1, 1, 0, decalageVerticaleCamera);
+        }
+        else{
+            if(decalageVerticaleCamera <= 260){decalageVerticaleCamera = decalageVerticaleCamera + 5;}
+            if(decalageVerticaleCamera < 260){decalageVerticaleCamera = 260;}
+            this.cameras.main.startFollow(player, false, 1, 1, 0, decalageVerticaleCamera);
+        }
         
         //animation du midground en continu
         frameMidground = frameMidground+1;
@@ -676,7 +687,7 @@ function update (){
             else if ((frameInvulnerable <= 110 && frameInvulnerable >= 100) || (frameInvulnerable <= 90 && frameInvulnerable >= 80) || (frameInvulnerable <= 70 && frameInvulnerable >= 60) || (frameInvulnerable <= 50 && frameInvulnerable >= 40) || (frameInvulnerable <= 30 && frameInvulnerable >= 20) || (frameInvulnerable <= 10 && frameInvulnerable >= 0)){player.setAlpha(1);}
             else{player.setAlpha(1);}
         }
-        
+
         if(hitPlayerByFireBall == true){
             this.cameras.main.shake(200);
             pv = 0;
@@ -760,7 +771,7 @@ function update (){
                 this.physics.add.overlap(fireball, astraunaute, fireballHitingOppo);
             }
         } else if (fireballCanBeGenerated == false){
-            if(fireball.y >= 1280){
+            if(fireball.y >= 1450){
                 fireball.disableBody(true, true);
                 fireballCanBeGenerated = true;
             }
@@ -777,13 +788,13 @@ function update (){
             this.physics.add.collider(particule_2, player, hitPlayer);
             this.physics.add.collider(particule_3, player, hitPlayer);
             fireball.disableBody(true, true);
-            if(particule_1.y <= 1280){
+            if(particule_1.y <= 1500){
                 for(let i = 0; i < 9; i++){particule_1.setVelocityX(i);}  
-            } if(particule_2.y <= 1280){
+            } if(particule_2.y <= 1500){
                 for(let i = 0; i < 9; i++){particule_2.setVelocityX(-i);}
-            } if(particule_3.y <= 1280){
+            } if(particule_3.y <= 1500){
                 for(let i = 0; i < 9; i++){particule_3.setVelocityX(-i);}
-            } if(particule_1.y >= 1280 && particule_2.y >= 1280 && particule_3.y >= 1280){
+            } if(particule_1.y >= 1500 && particule_2.y >= 1500 && particule_3.y >= 1500){
                 particule_1.disableBody(true, true);
                 particule_2.disableBody(true, true);
                 particule_3.disableBody(true, true);
