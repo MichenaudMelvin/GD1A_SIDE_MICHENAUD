@@ -117,8 +117,9 @@ function preload (){
     this.load.image('particule_2', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/particule_2.png');
     this.load.image('particule_3', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/particule_3.png');
     this.load.image('hereComesTheSun', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/sun.png'); //here comes the sun, bringing you love and shining on everyone https://youtu.be/zNTaVTMoNTk
-    this.load.image('ecranTitre', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/ecranTitre.png');
+    // this.load.image('ecranTitre', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/ecranTitre.png');
     this.load.image('gameOverScreen', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/gameOverScreen.png');
+    this.load.image('testEcranTitre', 'forReadMeOrPresentation/testPourGitHubPages.png');
 
     //load de toutes les sprites sheets
     this.load.spritesheet('alien', 'fichier_de_travail/spriteSheetAlien-assets/spriteSheetAlien.png', {frameWidth: 34, frameHeight: 73});
@@ -132,7 +133,7 @@ function preload (){
 
 function create (){
     //création de l'écran titre
-    this.ecranTitre = this.add.image(0, 0, 'ecranTitre');
+    this.ecranTitre = this.add.image(0, 0, 'testEcranTitre');
     this.ecranTitre.setOrigin(0, 0);
 
     texteEcranTitre = this.add.sprite(850, 600, 'texteEcranTitre');
