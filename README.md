@@ -1,4 +1,4 @@
-# GitHub pages n'affiche pas la bonne version
+# GitHub pages n'affiche (peut être) pas la bonne version, mieux vaut tester avec moongoose
 
 ## **Languages** :
 1. [Français](#Français)
