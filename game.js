@@ -18,10 +18,6 @@ var config = {
     }
 };
 
-//known issues
-// sometimes the ennemis does moonwalk
-// maybe other things
-
 //all variables
 var player;
 var platforms;
@@ -89,11 +85,6 @@ var fireballCanBeGenerated = true;
 var hitAstraunauteByFireBall = false;
 var hitPlayerByFireBall = false;
 
-//pour l'animation du midground
-var firstPart = true;
-var secondPart = false;
-var frameMidground = 0;
-
 //pour controles manette
 var paddleConnected = false;
 var paddle;
@@ -113,6 +104,9 @@ var hitFuseeByFireball = false;
 function preload (){
     this.load.image('background', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/fond.png');
     this.load.image('ground', 'fichier_de_travail/ground.png');
+    this.load.image('plateformeVolante', 'fichier_de_travail/plateforme.png');
+    this.load.image('grandePlateforme', 'fichier_de_travail/grandePlateforme.png');
+    this.load.image('plateformeColle', 'fichier_de_travail/plateformeColle.png');
     // this.load.image('tilesGround', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/tileSheet.png');
     // this.load.tilemapTiledJSON('ground', 'fichier_de_travail/test.json');
     this.load.image('coeur', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/coeur.png');
@@ -172,7 +166,20 @@ function create (){
         frames: [{key: 'alien', frame: 12}],
         frameRate: 20 
     })
-    
+
+    //quand en l'air et idle
+    this.anims.create({
+        key: 'idleGaucheSolAvecJetpackAire',
+        frames: [{key: 'alien', frame: 16}],
+        frameRate: 20 
+    })
+
+    this.anims.create({
+        key: 'idleDroiteSolAvecJetpackAire',
+        frames: [{key: 'alien', frame: 20}],
+        frameRate: 20 
+    })
+
     //animation de marche du personnage sans le jetpack
     this.anims.create({
         key: 'gaucheSolSansJetpack',
@@ -301,10 +308,21 @@ function create (){
 }
 
 function update (){
+    this.input.gamepad.once('connected',function(pad){
+        paddleConnected = true ;
+        paddle = pad;
+    });
+
     if(keyA.isDown && gameLoad == false){
         this.cameras.main.fadeOut(500, 0, 0, 0);
         tempsDePauseEcranTitre = 100;
         gameCanBeLoad = true;
+    } else if(paddleConnected == true){
+        if(paddle.A && gameLoad == false){
+            this.cameras.main.fadeOut(500, 0, 0, 0);
+            tempsDePauseEcranTitre = 100;
+            gameCanBeLoad = true;
+        }
     }
 
     if(gameCanBeLoad == false){
@@ -348,16 +366,25 @@ function update (){
 
             //entités + caméra
             player = this.physics.add.sprite(100, 1372, 'alien');
-            astraunaute = this.physics.add.sprite(700, 1372, 'astraunaute');
+            // astraunaute = this.physics.add.sprite(2500, 130, 'astraunaute');
+            astraunaute = this.physics.add.sprite(3500, 1200, 'astraunaute');
             this.physics.world.setBounds(0, 0, 4512, 1440);
             this.cameras.main.setBounds(0, 0, 4512, 1472);
+
+            //creation de toutes les plateformes
+            platforms.create(0, 200, 'plateformeVolante');
+            platforms.create(600, 700, 'plateformeVolante');
+            platforms.create(800, 1055, 'plateformeVolante');
+            platforms.create(1500, 710, 'plateformeVolante');
+            platforms.create(2500, 132, 'grandePlateforme');
+            platforms.create(2304, 1376, 'plateformeColle');
 
             player.setBounce(0.5); //just for debug, when it's done set to 0.5 
             player.setCollideWorldBounds(true);
             astraunaute.setCollideWorldBounds(true);
             
             //creation de la fusée
-            fusee = this.physics.add.sprite(500, 1200, 'fusee');
+            fusee = this.physics.add.sprite(4400, 1200, 'fusee');
             //gestion de la hitbox de la fusée
             fusee.setSize(46, 81, false);
 
@@ -385,10 +412,6 @@ function update (){
             gameLoad = true;
         }
     }
-    this.input.gamepad.once('connected',function(pad){
-        paddleConnected = true ;
-        paddle = pad;
-    });
     
     if(gameLoad == true){
         frame = frame + 1;
@@ -423,6 +446,9 @@ function update (){
             } else if(tempsDeReload < 0){
                 //reload de la page web
                 if(keyA.isDown){location.reload();}
+                else if(paddleConnected == true){
+                    if(paddle.A){location.reload();}
+                }
             }
         }
 
@@ -452,7 +478,6 @@ function update (){
         }
         
         //animation du midground en continu
-        frameMidground = frameMidground+1;
         midground.anims.play('animatonMidground', true);
 
         //simples moves
@@ -478,8 +503,14 @@ function update (){
                 } else {
                     player.setVelocityX(0);
                     if(playerHaveJetPack == true){
-                        if(lastPose == "left"){player.anims.play('idleGaucheSolAvecJetpack', true);}
-                        else if(lastPose == "right"){player.anims.play('idleDroiteSolAvecJetpack', true);}
+                        if(lastPose == "left"){
+                            if(checkUpisUp == true && ableToUseJet == true && jetpackValue > 0){player.anims.play('idleGaucheSolAvecJetpackAire', true);}
+                            else{player.anims.play('idleGaucheSolAvecJetpack', true);}
+                        }
+                        else if(lastPose == "right"){
+                            if(checkUpisUp == true && ableToUseJet == true && jetpackValue > 0){player.anims.play('idleDroiteSolAvecJetpackAire', true);}
+                            else{player.anims.play('idleDroiteSolAvecJetpack', true);}
+                        }
                     } else{
                         if(lastPose == "left"){player.anims.play('idleGaucheSolSansJetpack', true);}
                         else if(lastPose == "right"){player.anims.play('idleDroiteSolSansJetpack', true);}
@@ -566,8 +597,8 @@ function update (){
                 }
             }
 
-            //imposibilité de pouvoir les tester
             //controles manette
+            //merci à Tristan pour les avoir testés
             if (paddleConnected == true){
                 if (paddle.left && pressBrakeOneTime == false){
                     tempsAnimPlayer = 0;
@@ -588,8 +619,14 @@ function update (){
                 } else {
                     player.setVelocityX(0);
                     if(playerHaveJetPack == true){
-                        if(lastPose == "left"){player.anims.play('idleGaucheSolAvecJetpack', true);}
-                        else if(lastPose == "right"){player.anims.play('idleDroiteSolAvecJetpack', true);}
+                        if(lastPose == "left"){
+                            if(checkUpisUp == true && ableToUseJet == true && jetpackValue > 0){player.anims.play('idleGaucheSolAvecJetpackAire', true);}
+                            else{player.anims.play('idleGaucheSolAvecJetpack', true);}
+                        }
+                        else if(lastPose == "right"){
+                            if(checkUpisUp == true && ableToUseJet == true && jetpackValue > 0){player.anims.play('idleDroiteSolAvecJetpackAire', true);}
+                            else{player.anims.play('idleDroiteSolAvecJetpack', true);}
+                        }
                     } else{
                         if(lastPose == "left"){player.anims.play('idleGaucheSolSansJetpack', true);}
                         else if(lastPose == "right"){player.anims.play('idleDroiteSolSansJetpack', true);}
@@ -597,14 +634,14 @@ function update (){
                 }
                 
                 //saut + jetpack
-                if (player.body.touching.down && paddle.A && hit == false){
+                if (player.body.touching.down && paddle.B && hit == false){
                     player.setVelocityY(-330);
                     ableToUseJet = true;
                 }
 
-                if (!player.body.touching.down && paddle.A.isUp && ableToUseJet == true && jetpackValue > 0 && hit == false && playerHaveJetPack == true){
+                if (!player.body.touching.down && paddle.B.isUp && ableToUseJet == true && jetpackValue > 0 && hit == false && playerHaveJetPack == true){
                     checkUpisUp = true;
-                } if (paddle.A && checkUpisUp == true && ableToUseJet == true && jetpackValue > 0 && pressBrakeOneTime == false){
+                } if (paddle.B && checkUpisUp == true && ableToUseJet == true && jetpackValue > 0 && pressBrakeOneTime == false){
                     canBrake = true;
                     jetpackValue = jetpackValue - 1
                     if(startJetPackDone == true){
@@ -616,7 +653,7 @@ function update (){
                     if (jetpackValue < 0){jetpackValue = 0;}
                 }
 
-                if(paddle.A.isUp && checkUpisUp == true && ableToUseJet == true){
+                if(paddle.B.isUp && checkUpisUp == true && ableToUseJet == true){
                     startJetPackDone = false;
                     frameCheckOnce = false;
                 }
@@ -637,7 +674,7 @@ function update (){
                 // }
 
                 //freinage d'urgence du jetpack
-                if(paddle.A && canBrake == true){
+                if(paddle.B && canBrake == true){
                     if(pressBrakeOneTime == false){
                         tempsFrein = 20;
                         valeurANePasDepasser = player.y;
@@ -654,15 +691,15 @@ function update (){
                 }
 
                 //tir du joueur
-                if (paddle.B && laserAlreadyShotPlayer == false && canBrake == false && victoryPlayer == false){
-                    if(lastPose == "left" || (paddle.left && paddle.B)){
+                if (paddle.A && laserAlreadyShotPlayer == false && canBrake == false && victoryPlayer == false){
+                    if(lastPose == "left" || (paddle.left && paddle.A)){
                         laserPlayer = this.physics.add.sprite(player.x+10, player.y, 'laser');
                         laserAlreadyShotPlayer = true;
                         directionLaserPlayer = "left";
                         if(playerHaveJetPack == true){animPlayer = "idleGaucheSolAvecJetpack";}
                         else{animPlayer = "idleGaucheSolSansJetpack";}
                         tempsAnimPlayer = 20;
-                    } else if(lastPose == "right" || paddle.right && paddle.B){
+                    } else if(lastPose == "right" || paddle.right && paddle.A){
                         laserPlayer = this.physics.add.sprite(player.x-10, player.y, 'laser');
                         laserAlreadyShotPlayer = true;
                         directionLaserPlayer = "right";
@@ -678,6 +715,7 @@ function update (){
 
             if(laserAlreadyShotPlayer == true){
                 this.physics.add.overlap(laserPlayer, astraunaute, hitAstraunauteLaser);
+                this.physics.add.collider(laserPlayer, platforms, hitPlatform);
                 laserPlayer.setVelocityY(-5);
                 if(directionLaserPlayer == "left"){
                     laserPlayer.setVelocityX(-1000);
@@ -803,6 +841,7 @@ function update (){
 
         if(laserAlreadyShotEnnemi == true){
             this.physics.add.overlap(player, laser, hitPlayer);
+            this.physics.add.collider(laser, platforms, hitPlatform);
             laser.setVelocityY(-5);
             if(directionLaserEnnemi == "left"){
                 laser.setVelocityX(-1000);
@@ -905,6 +944,9 @@ function update (){
                     tempsPhaseFusee = 2;
                 } else if(tempsPhaseFusee == 2){
                     if(keyA.isDown){location.reload();}
+                    else if(paddleConnected == true){
+                        if(paddle.A){location.reload();}
+                    }
                 }
             }
         }
@@ -971,6 +1013,11 @@ function fireballHitingAstronaut(){
     astraunaute.disableBody(true, true)
     fireballCanBeGenerated = true;
     hitAstraunauteByFireBall = true;
+}
+
+function hitPlatform(){
+    if(laserAlreadyShotPlayer == true){laserPlayer.disableBody(true, true);}
+    else{laser.disableBody(true, true);}
 }
 
 //permet la génération d'un chiffre aléatoire

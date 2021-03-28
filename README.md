@@ -13,7 +13,7 @@ ou allez à l'adresse https://michenaudmelvin.github.io/GD1A_SIDE_MICHENAUD/ (re
 
 ## **Liens présenation :**
 [Lien avec les capture](https://docs.google.com/presentation/d/1XRFPne7oHW5WBSpikO8SqhJ52vYbCzDz7epfjX4xNtg/edit?usp=sharing)  
-[Lien du fichier pdf]()
+[Lien du fichier pdf](https://drive.google.com/file/d/1zs-dRG-2WfXxXWKBYE_DA0Y_YMn4I1N4/view?usp=sharing)
 
 ## **Gameplay :**
 Déplacement sur l’axe X avec les flèches directionnels :
@@ -66,7 +66,7 @@ When you kill an astronaut, you collect his jetpack :
 -----------------
 <img src="forReadMeOrPresentation/captures/jetpackOptention.gif" width="150" height="81">
 
-And obvisly with this jetpack, you can fly :
+And obviously with this jetpack, you can fly :
 -----------------
 <img src="forReadMeOrPresentation/captures/jetpack.gif" width="150" height="81">
 
@@ -74,7 +74,7 @@ You cannot shoot while using your jetpack, pressing A makes you brake :
 -----------------
 <img src="forReadMeOrPresentation/captures/jetpackFrein.gif" width="150" height="81">
 
-Watch out ! Someties meteorites fall from the sky and kill you instantly :
+Watch out ! Sometimes meteorites fall from the sky and kill you instantly :
 -----------------
 <img src="forReadMeOrPresentation/captures/fireball.gif" width="150" height="81">
 
