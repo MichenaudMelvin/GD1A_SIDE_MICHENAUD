@@ -107,7 +107,7 @@ var playerIsDead = false;
 
 function preload (){
     this.load.image('background', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/fond.png');
-    this.load.image('ground', 'fichier_de_travail/test.png');
+    this.load.image('ground', 'fichier_de_travail/ground.png');
     // this.load.image('tilesGround', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/tileSheet.png');
     // this.load.tilemapTiledJSON('ground', 'fichier_de_travail/test.json');
     this.load.image('coeur', 'fichier_de_travail/sideScrollerFichierDeTravail-assets/coeur.png');
